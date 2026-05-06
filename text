@@ -1,0 +1,145 @@
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) UNIQUE NOT NULL,
+    last_name VARCHAR(100) UNIQUE NOT NULL,
+    matric_number VARCHAR(20) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE personal (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(150) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    linkedin_url VARCHAR(255),
+    address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE summaries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    professional_summary TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE education (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    institution VARCHAR(255) NOT NULL,
+    degree VARCHAR(100),
+    field_of_study VARCHAR(150),
+    start_date DATE,
+    end_date DATE,
+    grade_cgpa VARCHAR(20),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE experience (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    company VARCHAR(255) NOT NULL,
+    job_title VARCHAR(150),
+    start_date DATE,
+    end_date DATE,
+    description TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE skills (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    skill_name VARCHAR(100) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+<script>
+const steps = document.querySelectorAll(".step");
+const sections = document.querySelectorAll(".form-section");
+const nextBtn = document.querySelector(".finish-btn");
+const backBtn = document.querySelector(".back-btn");
+
+let currentStep = 0;
+
+// STEP ORDER
+const stepOrder = ["personal", "summary", "education", "experience", "skills"];
+
+// FUNCTION TO SHOW STEP
+function showStep(index) {
+    // remove active
+    steps.forEach(s => s.classList.remove("active"));
+    sections.forEach(sec => sec.classList.remove("active"));
+
+    // activate current
+    steps[index].classList.add("active");
+    document.getElementById(stepOrder[index]).classList.add("active");
+
+    currentStep = index;
+
+    // CHANGE BUTTON TEXT ON LAST STEP
+    if (currentStep === stepOrder.length - 1) {
+        nextBtn.textContent = "Finish & Preview CV";
+    } else {
+        nextBtn.textContent = "Save & Continue";
+    }
+}
+
+// CLICK ON TOP TABS
+steps.forEach((step, index) => {
+    step.addEventListener("click", () => {
+        showStep(index);
+    });
+});
+
+
+
+<script>
+const steps = document.querySelectorAll(".step");
+const sections = document.querySelectorAll(".form-section");
+const nextBtn = document.querySelector(".finish-btn");
+const backBtn = document.querySelector(".back-btn");
+
+steps.forEach(step => {
+    step.addEventListener("click", () => {
+
+        // remove active from all
+        steps.forEach(s => s.classList.remove("active"));
+        sections.forEach(sec => sec.classList.remove("active"));
+
+        // activate clicked
+        step.classList.add("active");
+
+        const target = step.dataset.step;
+        document.getElementById(target).classList.add("active");
+    });
+});
+
+// NEXT BUTTON
+nextBtn.addEventListener("click", async () => {
+
+    const currentSection = document.getElementById(stepOrder[currentStep]);
+    const formData = new FormData(currentSection);
+});
+
+// BACK BUTTON
+backBtn.addEventListener("click", () => {
+    if (currentStep > 0) {
+        showStep(currentStep - 1);
+    }
+});
+</script>
+
+
+nextBtn.addEventListener("click", (e) => {
+
+    if (currentStep < stepOrder.length - 1) {
+        e.preventDefault();
+        showStep(currentStep + 1);
+    } else {
+        // LAST STEP → allow submit, then redirect after PHP
+    }
+
+});

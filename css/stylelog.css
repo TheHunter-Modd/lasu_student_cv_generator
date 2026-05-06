@@ -1,0 +1,228 @@
+ * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f2f3f7;
+}
+
+/* HEADER */
+.header {
+    background: linear-gradient(to right, #6f77c6, #8b90e0);
+    padding: 18px 40px;
+}
+
+/* THIS IS THE KEY */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* IMAGE */
+.logo img {
+    width: 32px;
+    height: 32px;
+}
+
+/* TEXT BLOCK */
+.text h3 {
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.text small {
+    display: block;
+    color: #e0e3ff;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+/* CONTAINER */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Changed from height */
+    height: auto;      /* Force it to grow */
+}
+
+/* CARD */
+.card {
+    display: flex;
+    width: 900px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* LEFT SIDE */
+.left {
+    width: 50%;
+    background: linear-gradient(to bottom, #7c83d3, #6f77c6);
+    color: white;
+    padding: 40px;
+}
+
+.left h1 {
+    font-size: 40px;
+    margin: 20px 0;
+}
+
+.left p {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* IMAGE */
+.image1 img {
+    width: 100%;
+    margin-top: 20px;
+    border-radius: 10px;
+}
+
+/* RIGHT SIDE */
+.right {
+    width: 50%;
+    background: #fff;
+    padding: 40px;
+}
+
+.right h2 {
+    font-size: 28px;
+}
+
+.sub {
+    color: #777;
+    margin-bottom: 20px;
+}
+
+/* LINK */
+.login-link {
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.login-link a {
+    color: #7c83d3;
+    text-decoration: none;
+}
+
+/* INPUTS */
+.right input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+}
+
+/* BUTTON */
+.btn {
+    width: 160px;
+    padding: 12px;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(to right, #7c83d3, #6f77c6);
+    color: white;
+    cursor: pointer;
+}
+
+/* ERROR */
+.error-box p {
+    color: red;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+/* FOOTER */
+.footer {
+    text-align: center;
+    font-size: 12px;
+    margin-top: 20px;
+    color: #555;
+}
+
+/* ============================================================
+   MOBILE RESPONSIVENESS FOR LOGIN/SIGNUP (UPGRADED)
+============================================================ */
+@media (max-width: 768px) {
+    /* 1. Make the page background pure white so there are no gray gaps */
+    body {
+        background-color: #ffffff !important;
+    }
+
+    /* 2. Remove padding so the card touches the screen edges */
+    .container {
+        padding: 0 !important;
+        min-height: 100vh;
+        height: auto;
+    }
+
+    /* 3. Make the card stretch exactly to the bottom of the screen */
+    .card {
+        flex-direction: column;
+        width: 100%;
+        min-height: 100vh; 
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    /* 4. Adjust the purple header area */
+    .left {
+        width: 100%;
+        padding: 30px 25px 20px 25px;
+        text-align: center;
+    }
+
+    .left h1 {
+        font-size: 28px;
+        margin: 10px 0 5px 0;
+    }
+
+    /* 5. Hide the large illustration image completely to save space */
+    .image1 {
+        display: none !important;
+    }
+
+    /* 6. Let the form area take up the rest of the screen */
+    .right {
+        width: 100%;
+        padding: 20px 25px 40px 25px; /* Extra bottom padding */
+        flex-grow: 1; /* This pushes the footer to the bottom */
+    }
+
+    .right h2 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    /* 7. FIX: Make sure checkboxes and text wrap neatly on small screens */
+    .right label {
+        display: inline-block;
+        vertical-align: middle;
+        max-width: 85%;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    
+    /* Make the submit button full width on signup */
+    .btn {
+        width: 100%;
+    }
+}
+
+/* Extra small phones (iPhone SE, etc.) */
+@media (max-width: 380px) {
+    .left {
+        padding: 20px 15px 15px 15px;
+    }
+    .right {
+        padding: 15px 15px 30px 15px;
+    }
+}
