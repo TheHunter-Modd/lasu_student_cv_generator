@@ -7,70 +7,66 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = trim($_POST["email"]);
     $pwd = trim($_POST["pwd"]);
 
-
     try {
-       require_once 'dbh.inc.php';
-       require_once 'register_model.inc.php';
-       require_once 'register_contr.inc.php';   
-       
-       
-       // ERROR HNADLERS
+        // 1. START SESSION FIRST!
+        require_once 'config_session.inc.php'; 
 
-       $errors = [];
+        require_once 'dbh.inc.php';
+        require_once 'register_model.inc.php';
+        require_once 'register_contr.inc.php';   
+       
+        // ERROR HANDLERS
+        $errors = [];
 
-       if (is_input_empty($firstName, $lastName, $matricNumber, $email, $pwd)) {
-        $errors["empty_input"] = "Fill in all fields!";
-       }
+        if (is_input_empty($firstName, $lastName, $matricNumber, $email, $pwd)) {
+            $errors["empty_input"] = "Fill in all fields!";
+        }
 
         if (is_matric_number_taken($pdo, $matricNumber)) {
-                $errors["matric_number_taken"] = "Matric Number taken!";
-       }
+            $errors["matric_number_taken"] = "Matric Number taken!";
+        }
 
         if (is_email_invalid($email)) {
-                $errors["invalid_email"] = "Invalid email used!";
-       }
+            $errors["invalid_email"] = "Invalid email used!";
+        }
 
-           if (is_email_registered( $pdo, $email)) {
-                $errors["email_used"] = "Email already registered!";
-       }
+        if (is_email_registered($pdo, $email)) {
+            $errors["email_used"] = "Email already registered!";
+        }
 
-            if ($pwd !== $_POST["confirm_pwd"]) {
-                    $errors["password_mismatch"] = "Passwords do not match!";
-       }
+        if ($pwd !== $_POST["confirm_pwd"]) {
+            $errors["password_mismatch"] = "Passwords do not match!";
+        }
 
-        require_once 'config_session.inc.php';   
+        if ($errors) {
+            $_SESSION['errors_register'] = $errors;
 
-       if ($errors) {
-        $_SESSION['errors_register'] = $errors;
+            // Preserve user input except password
+            $_SESSION['register_data'] = [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'matric_number' => $matricNumber,
+                'email' => $email
+            ];
 
-        // Preserve user input except password
-        $registerData = [
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'matric_number' => $matricNumber,
-            'email' => $email
-        ];
-        $_SESSION['register_data'] = $registerData;
+            header("Location: ../index.php");
+            die();
+        }
 
-        header("Location: ../index.php");
+        // CREATE USER
+        create_user($pdo, $firstName, $lastName, $matricNumber, $email, $pwd);
+
+        // CLEANUP (Removed $stmt = null because it doesn't exist here)
+        $pdo = null;
+
+        // REDIRECT TO LOGIN
+        header("Location: ../login.php?signup=success");
         die();
 
-       }
-
-       create_user($pdo, $firstName, $lastName, $matricNumber, $email, $pwd);
-
-       header("Location: ../login.php?signup=success");
-
-       $pdo = null;
-       $stmt = null;
-       die();
-
-
-
     } catch (PDOException $e) {
-    die("Query failed: " . $e->getMessage());
+        die("Query failed: " . $e->getMessage());
     }
 } else {
     header("Location: ../login.php");
     die();
-} 
+}
