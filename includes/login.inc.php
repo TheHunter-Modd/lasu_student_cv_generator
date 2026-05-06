@@ -29,10 +29,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $errors["login_incorrect"] = "Incorrect login details!";
         }
 
-        if ($errors) {
-            $_SESSION["errors_login"] = $errors;
-            header("Location: ../login.php");
-            die();
+                if ($errors) {
+            echo "<pre>";
+            print_r($errors);
+            echo "</pre>";
+            die("STOPPED. Here are the errors.");
         }
 
         // ✅ LOGIN SUCCESS
