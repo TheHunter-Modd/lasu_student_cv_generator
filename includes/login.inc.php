@@ -6,9 +6,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $pwd = trim($_POST["pwd"]);
 
     try {
-        // 1. START SESSION FIRST!
         require_once 'config_session.inc.php'; 
-        
         require_once 'dbh.inc.php';
         require_once 'login_model.inc.php';
         require_once 'login_contr.inc.php';
@@ -31,29 +29,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($errors) {
             $_SESSION["errors_login"] = $errors;
-
-            // DEBUG: Print errors instead of redirecting
-            echo "<h1>ERRORS FOUND:</h1>";
-            print_r($errors);
-            die("Stopped to show errors.");
+            header("Location: ../login.php");
+            die();
         }
 
         // ✅ LOGIN SUCCESS
         $_SESSION["user_id"] = $result["id"];
         $_SESSION["user_matric"] = htmlspecialchars($result["matric_number"]);
 
-        // DEBUG BLOCK: Check what database returned
-        echo "<h1>Success Block Reached!</h1>";
-        echo "<pre>";
-        print_r($result);
-        echo "\n--- SESSION ---\n";
-        print_r($_SESSION);
-        echo "</pre>";
-        die("Stopped to show success data.");
-        // END DEBUG BLOCK
-
-        // header("Location: ../dashboard.php");
-        // die();
+        header("Location: ../dashboard.php");
+        die();
 
     } catch (PDOException $e) {
         die("Query failed: " . $e->getMessage());
