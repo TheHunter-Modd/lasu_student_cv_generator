@@ -16,7 +16,7 @@ require_once 'includes/preview_contr.inc.php';
     <link rel="stylesheet" href="css/dashboard.css">
     <?php 
     // 1. Get the chosen template from the data, default to 'classic'
-    $chosen_template = $cv_data['personal']['template_choice'] ?: 'classic';
+        $chosen_template = $cv_data['personal']['template_choice'] ?? 'classic';
     
     // 2. Security: Only allow these exact file names (prevents hacking)
         $allowed_templates = ['classic', 'professional', 'academic'];
