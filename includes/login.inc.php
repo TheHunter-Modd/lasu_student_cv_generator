@@ -6,6 +6,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $pwd = trim($_POST["pwd"]);
 
     try {
+        // 1. START SESSION FIRST!
+        require_once 'config_session.inc.php'; 
+        
         require_once 'dbh.inc.php';
         require_once 'login_model.inc.php';
         require_once 'login_contr.inc.php';
@@ -26,11 +29,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $errors["login_incorrect"] = "Incorrect login details!";
         }
 
-        require_once 'config_session.inc.php';
-
         if ($errors) {
             $_SESSION["errors_login"] = $errors;
-
             header("Location: ../login.php");
             die();
         }
