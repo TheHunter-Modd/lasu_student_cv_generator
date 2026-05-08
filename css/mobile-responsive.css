@@ -2,15 +2,9 @@
    LASU CV GENERATOR — MOBILE RESPONSIVE FIX
    css/mobile-responsive.css
 
-   WHAT THIS FILE DOES (that dashboard.css does NOT handle):
-   - Global overflow-x prevention on html/body
-   - Responsive image constraints
-   - Form input max-width to prevent overflow
-   - Tablet tweaks at 1024px
-   - Builder step scrolling + form stacking at 768px
-   - Preview toolbar stacking + CV paper scaling at 768px
-   - Small phone adjustments at 480px
-   - Print styles that strip shell and render only CV paper
+   This file handles MOBILE SCREEN styles only.
+   Print styles are centralized in preview.css to avoid
+   conflicts between multiple @media print blocks.
    ============================================================ */
 
 
@@ -63,10 +57,7 @@ select {
 
 
 /* ─────────────────────────────────────────────────────────
-   SECTION 3 — PREVIEW PAGE MOBILE  (≤ 768px)
-   dashboard.css already handles sidebar, hamburger, tabs,
-   and content layout. This section only adds what
-   dashboard.css doesn't cover: the preview/CV paper.
+   SECTION 3 — MOBILE  (≤ 768px)
    ──────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
@@ -192,34 +183,5 @@ select {
   }
 }
 
-
-/* ─────────────────────────────────────────────────────────
-   SECTION 5 — PRINT
-   ──────────────────────────────────────────────────────── */
-
-@media print {
-
-  .sidebar,
-  .sidebar-overlay,
-  .mobile-menu-btn,
-  .header-area,
-  .preview-toolbar,
-  .back-link {
-    display: none !important;
-  }
-
-  .main,
-  .preview-body,
-  .cv-wrapper {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  .cv-paper {
-    transform: none !important;
-    margin-bottom: 0 !important;
-    width: 210mm;
-    min-height: 297mm;
-    box-shadow: none !important;
-  }
-}
+/* NOTE: No @media print block here.
+   All print styles are in preview.css to avoid conflicts. */

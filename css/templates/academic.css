@@ -1,4 +1,7 @@
-/* ── ACADEMIC: SARA DRAYER STRUCTURE ── */
+/* ── ACADEMIC: SARA DRAYER STRUCTURE ──
+   This file ONLY contains Academic-template-specific overrides.
+   Base CV styles are in preview.css.
+   ================================================== */
 
 .cv-header {
     text-align: center;
@@ -13,14 +16,14 @@
     text-transform: uppercase;
     color: #000;
     letter-spacing: 0.1em;
-    border-bottom: 2px solid #8b0000; /* Dark red underline just for the name */
+    border-bottom: 2px solid #8b0000;
     padding-bottom: 5px;
-    display: inline-block; /* Makes underline only as wide as the name */
+    display: inline-block;
 }
 
 .cv-contact-row {
     justify-content: center;
-    gap: 0px; /* Remove gaps */
+    gap: 0px;
     font-size: 0.8rem;
     color: #333;
     margin-top: 10px;
@@ -28,7 +31,7 @@
 
 /* HIDE SVG ICONS */
 .cv-contact-item svg {
-    display: none !important; 
+    display: none !important;
 }
 
 /* ADD DASHES BETWEEN CONTACT ITEMS */
@@ -53,7 +56,10 @@
     padding-bottom: 3px;
     margin-bottom: 8px;
 }
-.cv-section-rule { display: none; }
+
+.cv-section-rule {
+    display: none !important;
+}
 
 /* Standard Entry */
 .cv-entry-header {

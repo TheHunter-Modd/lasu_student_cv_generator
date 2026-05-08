@@ -1,36 +1,11 @@
 /* ============================================================
    LASU CV GENERATOR — MOBILE JS HELPERS
    File: js/mobile.js
-
-   HOW TO USE:
-   Add this ONE script tag to the bottom of every .php page,
-   just before </body>:
-     <script src="js/mobile.js"></script>
-
-   dashboard.php and builder.php also need the hamburger
-   button + overlay added to their HTML (see below).
    ============================================================ */
 
 
 /* ─────────────────────────────────────────────────────────
    1. HAMBURGER MENU TOGGLE
-   Works with .sidebar, .sidebar-overlay, and
-   .mobile-menu-btn elements.
-
-   HTML TO ADD in dashboard.php and builder.php:
-   ─────────────────────────────────────────────
-   a) Right before <div class="sidebar"> (inside .dashboard):
-      <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
-
-   b) Inside .top-nav, as the FIRST child (before .tabs):
-      <button class="mobile-menu-btn" onclick="toggleMobileMenu()"
-              aria-label="Open navigation menu">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-
-   preview.php already has both — no changes needed there.
    ──────────────────────────────────────────────────────── */
 
 function toggleMobileMenu() {
@@ -41,7 +16,7 @@ function toggleMobileMenu() {
   if (overlay) overlay.classList.toggle('open');
 }
 
-// Close the sidebar if user clicks a menu link on mobile
+// Close sidebar when a nav link is clicked on mobile
 document.addEventListener('DOMContentLoaded', function () {
   const menuLinks = document.querySelectorAll('.sidebar .menu a, .sidebar .logout');
   menuLinks.forEach(function (link) {
@@ -59,41 +34,159 @@ document.addEventListener('DOMContentLoaded', function () {
 
 /* ─────────────────────────────────────────────────────────
    2. CV PAPER DYNAMIC SCALE (preview.php only)
-   Reads the actual viewport width and calculates the exact
-   scale factor so the A4 CV paper (794px wide) fits without
-   horizontal scroll. Re-runs on window resize (orientation
-   change, etc.).
+   Reads viewport width and calculates scale so the 794px
+   A4 paper fits on mobile without horizontal scroll.
    ──────────────────────────────────────────────────────── */
 
 function scaleCVPaper() {
-  const paper = document.querySelector('.cv-paper');
-  if (!paper) return;                      // Not on the preview page
+  var paper = document.querySelector('.cv-paper');
+  if (!paper) return;
 
-  const PAPER_WIDTH = 794;                 // A4 at 96dpi
-  const PADDING     = 32;                  // 16px each side
+  var PAPER_WIDTH = 794;   // A4 at 96dpi
+  var PADDING     = 32;    // 16px each side
 
   if (window.innerWidth <= 768) {
-    const availableWidth = window.innerWidth - PADDING;
-    const scale = Math.min(availableWidth / PAPER_WIDTH, 1); // Never scale up
+    var availableWidth = window.innerWidth - PADDING;
+    var scale = Math.min(availableWidth / PAPER_WIDTH, 1);
 
-    // Write as a CSS variable so the media query can use it too
     document.documentElement.style.setProperty('--cv-scale', scale);
     paper.style.transform       = 'scale(' + scale + ')';
     paper.style.transformOrigin = 'top center';
 
-    // Compensate for the height collapse caused by scaling
-    const paperHeight    = paper.offsetHeight || 1123; // A4 height at 96dpi
-    const scaledHeight   = paperHeight * scale;
-    const heightLoss     = paperHeight - scaledHeight;
+    var paperHeight    = paper.offsetHeight || 1123;
+    var scaledHeight   = paperHeight * scale;
+    var heightLoss     = paperHeight - scaledHeight;
     paper.style.marginBottom = '-' + heightLoss + 'px';
   } else {
-    // Desktop: reset everything
     document.documentElement.style.removeProperty('--cv-scale');
-    paper.style.transform    = '';
-    paper.style.marginBottom = '';
+    paper.style.transform       = '';
+    paper.style.transformOrigin = '';
+    paper.style.marginBottom    = '';
   }
 }
 
-// Run once on load, then on every resize
 window.addEventListener('load',   scaleCVPaper);
 window.addEventListener('resize', scaleCVPaper);
+
+
+/* ─────────────────────────────────────────────────────────
+   3. PRINT HANDLING — strips transform BEFORE printing,
+      restores it AFTER.
+
+      ★★★ THIS IS THE FIX ★★★
+
+      On mobile, the CV paper has transform: scale(0.42) so
+      it fits on screen. When the user taps "Download PDF",
+      the browser captures the CURRENT visual state for the
+      print preview — including that tiny scale. Result: a
+      miniature CV in the corner of an A4 page.
+
+      fix: Strip the transform, wait for re-render, THEN
+      print. After printing, restore the transform.
+   ──────────────────────────────────────────────────────── */
+
+var _printState = {
+  transform: '',
+  transformOrigin: '',
+  marginBottom: '',
+  cvScale: '',
+  bodyOverflow: '',
+  sidebarOpen: false,
+  overlayOpen: false
+};
+
+/* Save current mobile state and strip all scaling */
+function _stripForPrint() {
+  var paper = document.querySelector('.cv-paper');
+  if (!paper) return;
+
+  // Save current values
+  _printState.transform       = paper.style.transform;
+  _printState.transformOrigin = paper.style.transformOrigin;
+  _printState.marginBottom    = paper.style.marginBottom;
+  _printState.cvScale         = document.documentElement.style.getPropertyValue('--cv-scale');
+  _printState.bodyOverflow    = document.body.style.overflow;
+
+  // Check sidebar state
+  var sidebar = document.querySelector('.sidebar');
+  var overlay = document.querySelector('.sidebar-overlay');
+  _printState.sidebarOpen = sidebar ? sidebar.classList.contains('open') : false;
+  _printState.overlayOpen = overlay ? overlay.classList.contains('open') : false;
+
+  // ★ Strip the mobile scale transform
+  paper.style.transform       = 'none';
+  paper.style.transformOrigin = 'top left';
+  paper.style.marginBottom    = '0';
+
+  // Remove CSS variable
+  document.documentElement.style.removeProperty('--cv-scale');
+
+  // Reset body overflow (JS may have set hidden)
+  document.body.style.overflow = '';
+
+  // Close sidebar if open
+  if (sidebar && sidebar.classList.contains('open')) sidebar.classList.remove('open');
+  if (overlay && overlay.classList.contains('open')) overlay.classList.remove('open');
+}
+
+/* Restore mobile state after printing */
+function _restoreAfterPrint() {
+  var paper = document.querySelector('.cv-paper');
+  if (!paper) return;
+
+  paper.style.transform       = _printState.transform;
+  paper.style.transformOrigin = _printState.transformOrigin;
+  paper.style.marginBottom    = _printState.marginBottom;
+
+  if (_printState.cvScale) {
+    document.documentElement.style.setProperty('--cv-scale', _printState.cvScale);
+  }
+
+  document.body.style.overflow = _printState.bodyOverflow;
+
+  // Restore sidebar if it was open
+  if (_printState.sidebarOpen) {
+    var sidebar = document.querySelector('.sidebar');
+    if (sidebar) sidebar.classList.add('open');
+  }
+  if (_printState.overlayOpen) {
+    var overlay = document.querySelector('.sidebar-overlay');
+    if (overlay) overlay.classList.add('open');
+  }
+}
+
+/* Modern browsers fire beforeprint/afterprint events */
+window.addEventListener('beforeprint', function () {
+  _stripForPrint();
+});
+
+window.addEventListener('afterprint', function () {
+  _restoreAfterPrint();
+});
+
+/* ★★★ printCV() — THE FUNCTION TO CALL FROM THE BUTTON ★★★
+
+   Why not just use window.print()?
+   - Many mobile browsers (Android Chrome, Samsung Internet,
+     iOS Safari) do NOT reliably fire beforeprint/afterprint
+   - So we manually strip the transform, wait for the
+     browser to re-render, then call window.print()
+   - After the print dialog closes, we restore everything
+*/
+function printCV() {
+  _stripForPrint();
+
+  // Wait TWO animation frames to ensure the browser has
+  // actually re-rendered the page without the transform
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      window.print();
+
+      // Restore after a short delay (gives the print
+      // dialog time to capture the full-size version)
+      setTimeout(function () {
+        _restoreAfterPrint();
+      }, 600);
+    });
+  });
+}

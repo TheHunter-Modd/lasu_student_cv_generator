@@ -1,4 +1,7 @@
-/* ── PROFESSIONAL: JULIO RIVERA STRUCTURE ── */
+/* ── PROFESSIONAL: JULIO RIVERA STRUCTURE ──
+   This file ONLY contains Professional-template-specific overrides.
+   Base CV styles are in preview.css.
+   ================================================== */
 
 .cv-header {
     text-align: left;
@@ -34,7 +37,10 @@
     padding: 4px 12px;
     margin-bottom: 0px;
 }
-.cv-section-rule { display: none; } /* Hide the default line */
+
+.cv-section-rule {
+    display: none !important;
+}
 
 /* THE MAGIC: FLIP TITLE AND COMPANY */
 .cv-entry-header {
@@ -47,20 +53,20 @@
 /* The inner wrapper holds Title and Subtitle */
 .cv-entry-header > div:first-child {
     display: flex;
-    flex-direction: column-reverse; /* FLIPS THEM! Subtitle (Company) is now on top! */
+    flex-direction: column-reverse;
 }
 
 .cv-entry-subtitle {
     font-size: 0.95rem;
     font-weight: 700;
-    color: #2c3e50; /* Company is now the bold one */
+    color: #2c3e50;
     font-style: normal;
 }
 
 .cv-entry-title {
     font-size: 0.85rem;
     font-weight: 400;
-    color: #555; /* Job Title is now normal text */
+    color: #555;
 }
 
 .cv-entry-date {

@@ -15,17 +15,14 @@ require_once 'includes/preview_contr.inc.php';
     <link rel="manifest" href="assets/favicon_io/site.webmanifest">
     <link rel="stylesheet" href="css/dashboard.css">
     <?php 
-    // 1. Get the chosen template from the data, default to 'classic'
     $chosen_template = $cv_data['personal']['template_choice'] ?? 'classic';
-    
-    // 2. Security: Only allow these exact file names (prevents hacking)
     $allowed_templates = ['classic', 'professional', 'academic'];
     if (!in_array($chosen_template, $allowed_templates)) {
         $chosen_template = 'classic';
     }
 ?>
-<link rel="stylesheet" href="css/preview.css?v=4"> <!-- Main print/layout rules -->
-<link rel="stylesheet" href="css/templates/<?= $chosen_template ?>.css?v=1"> <!-- Dynamic Template! -->
+<link rel="stylesheet" href="css/preview.css?v=5">
+<link rel="stylesheet" href="css/templates/<?= $chosen_template ?>.css?v=2">
 <link rel="stylesheet" href="css/mobile-responsive.css">
 </head>
 <body>
@@ -114,25 +111,26 @@ require_once 'includes/preview_contr.inc.php';
 
             <!-- Toolbar -->
             <div class="preview-toolbar">
-    <a href="dashboard.php" class="back-link">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        Back to Dashboard
-    </a>
-    
-    <div style="display: flex; align-items: center; gap: 15px;">
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <span style="font-size: 0.85rem; font-weight: 600; color: #555;">Template:</span>
-            <button onclick="switchTemplate('classic')" class="template-btn <?= $chosen_template === 'classic' ? 'active' : '' ?>" data-template="classic">Classic</button>
-            <button onclick="switchTemplate('professional')" class="template-btn <?= $chosen_template === 'professional' ? 'active' : '' ?>" data-template="professional">Professional</button>
-            <button onclick="switchTemplate('academic')" class="template-btn <?= $chosen_template === 'academic' ? 'active' : '' ?>" data-template="academic">Academic</button>
-        </div>
-        
-        <button class="btn-download" onclick="window.print()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Download PDF
-        </button>
-    </div>
-</div>
+                <a href="dashboard.php" class="back-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    Back to Dashboard
+                </a>
+
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span style="font-size: 0.85rem; font-weight: 600; color: #555;">Template:</span>
+                        <button onclick="switchTemplate('classic')" class="template-btn <?= $chosen_template === 'classic' ? 'active' : '' ?>" data-template="classic">Classic</button>
+                        <button onclick="switchTemplate('professional')" class="template-btn <?= $chosen_template === 'professional' ? 'active' : '' ?>" data-template="professional">Professional</button>
+                        <button onclick="switchTemplate('academic')" class="template-btn <?= $chosen_template === 'academic' ? 'active' : '' ?>" data-template="academic">Academic</button>
+                    </div>
+
+                    <!-- ★ KEY FIX: printCV() instead of window.print() -->
+                    <button class="btn-download" onclick="printCV()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Download PDF
+                    </button>
+                </div>
+            </div>
 
             <!-- CV Paper -->
            <?php $edu = $cv_data['education'][0] ?? []; ?>
@@ -253,7 +251,7 @@ require_once 'includes/preview_contr.inc.php';
                 <?php endif; ?>
             <?php endif; ?>
 
-            <!-- EXPERIENCE (Classic & Academic) or RELEVANT EXPERIENCE (Professional) -->
+            <!-- EXPERIENCE -->
             <?php if (!empty($cv_data['experience'])): ?>
             <div class="cv-section" id="section-experience">
                 <div class="cv-section-title">
@@ -360,20 +358,16 @@ function setTab(tab) {
 
 setTab('<?= $active_tab ?>');
 
-// ── TEMPLATE SWITCHER LOGIC ──
 function switchTemplate(templateName) {
-    // 1. Update active button styling
     document.querySelectorAll('.template-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.template === templateName);
     });
-    
-    // 2. Swap the CSS file instantly on the screen
+
     const templateLink = document.querySelector('link[href*="css/templates/"]');
     if (templateLink) {
         templateLink.href = 'css/templates/' + templateName + '.css?v=' + Date.now();
     }
-    
-    // 3. Save the choice to the database in the background
+
     fetch('includes/save_template.inc.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -387,6 +381,7 @@ function switchTemplate(templateName) {
         console.error('Error saving template:', error);
     });
 }
+
 function toggleMobileMenu() {
     document.querySelector('.sidebar').classList.toggle('open');
     document.querySelector('.sidebar-overlay').classList.toggle('open');

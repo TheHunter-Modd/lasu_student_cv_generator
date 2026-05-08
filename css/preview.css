@@ -2,7 +2,13 @@
    preview.css — LASU CV Generator
    Loaded after dashboard.css. Adds the preview body,
    toolbar, A4 paper, CV sections, and print styles.
-============================================================ */
+
+   ★ PRINT STYLES USE !important BECAUSE:
+   JavaScript sets inline styles on .cv-paper for mobile
+   scaling (transform, marginBottom). Inline styles beat
+   regular CSS even in @media print. !important forces
+   the print styles to win.
+   ============================================================ */
 
 /* ── Preview scrollable area ──────────────────────────────── */
 .preview-body {
@@ -190,7 +196,6 @@
     margin: 6px 0 0;
 }
 
-/* ── Skills tag cloud ─────────────────────────────────────── */
 /* ── Skills list ──────────────────────────────────────────── */
 .cv-skills-list {
     list-style: none;
@@ -248,73 +253,7 @@
 }
 .cv-empty-state a { color: #3d3f8f; font-weight: 600; }
 
-/* ============================================================
-   PRINT STYLES — hides shell, renders only the cv-paper
-============================================================ */
-@media print {
-    .sidebar,
-    .header-area,
-    .preview-toolbar,
-    .preview-body > *:not(.cv-wrapper) {
-        display: none !important;
-    }
-
-    body, .dashboard, .main, .preview-body {
-        display: block !important;
-        background: #fff !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: visible !important;
-    }
-
-    .cv-wrapper { display: block; }
-
-    .cv-paper {
-        width: 100%;
-        min-height: auto;
-        box-shadow: none;
-        border-radius: 0;
-        padding: 20mm 20mm;
-        margin: 0;
-    }
-
-    /* Force all sections visible when printing */
-    .cv-section,
-    .cv-header {
-        display: block !important;
-    }
-
-    .cv-entry,
-    .cv-section {
-        page-break-inside: avoid;
-    }
-
-    @page {
-        margin: 0;
-        size: A4;
-    }
-
-    /* ... your existing print styles ... */
-
-    /* Force skills to display as separate items in print */
-        /* Force skills to display as separate items in print */
-    .cv-skills-list {
-        display: block !important;
-        margin: 10px 0 0 !important;
-    }
-
-    .cv-skills-list li {
-        display: list-item !important;
-        margin-bottom: 2px !important;
-        padding-left: 14px !important;
-        font-size: 0.85rem !important;
-    }
-
-    .cv-skills-list li::before {
-        content: "•" !important;
-    }
-}
-
+/* ── Template buttons (screen only) ───────────────────────── */
 .template-btn {
     padding: 6px 14px;
     border: 2px solid #ddd;
@@ -338,45 +277,113 @@
     color: #fff;
 }
 
+/* ============================================================
+   PRINT STYLES — ONE consolidated block
+
+   ★ ALL rules use !important because JavaScript sets inline
+   styles on .cv-paper (transform, marginBottom) for mobile
+   scaling. Without !important, those inline styles WIN over
+   regular CSS even inside @media print.
+
+   The JS printCV() function strips inline styles BEFORE
+   calling window.print(), but !important here is the safety
+   net in case the JS timing is off or the browser ignores
+   the inline style removal.
+============================================================ */
 @media print {
-    .template-btn { display: none !important; }
-    .preview-toolbar span { display: none !important; }
-    @page {
-        margin: 0;
-        size: A4;
+
+    /* ── Hide everything that isn't the CV ── */
+    .sidebar,
+    .sidebar.open,
+    .sidebar-overlay,
+    .sidebar-overlay.open,
+    .mobile-menu-btn,
+    .header-area,
+    .preview-toolbar,
+    .back-link,
+    .template-btn,
+    .btn-download,
+    .preview-body > *:not(.cv-wrapper) {
+        display: none !important;
     }
 
-    /* Force all sections visible when printing */
+    /* ── Reset all layout containers to simple blocks ── */
+    body {
+        overflow: visible !important;
+        width: 100% !important;
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .dashboard {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .main {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        overflow: visible !important;
+    }
+
+    .preview-body {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #fff !important;
+        overflow: visible !important;
+    }
+
+    .cv-wrapper {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        width: 100% !important;
+    }
+
+    /* ★★★ THE CRITICAL RULE ★★★
+       Override JS inline styles that set transform: scale(0.42)
+       Without !important, the inline style wins and you get
+       a tiny CV in the corner of the A4 page on mobile. */
+    .cv-paper {
+        transform: none !important;
+        transform-origin: top left !important;
+        margin-bottom: 0 !important;
+        width: 100% !important;
+        min-height: auto !important;
+        max-width: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 20mm 20mm !important;
+        margin: 0 !important;
+    }
+
+    /* ── Force all sections visible when printing ── */
     .cv-section,
     .cv-header {
         display: block !important;
     }
 
-    /* ── THE FIX: Prevent awkward page breaks ── */
+    /* ── Prevent awkward page breaks ── */
     .cv-section {
-        /* Prevent a section from being split in half across pages */
         break-inside: avoid;
         page-break-inside: avoid;
-        
-        /* If a section IS pushed to a new page, ensure it has top space */
-        padding-top: 18px !important;
-        margin-top: 10px !important;
     }
 
-    /* Prevent individual entries from splitting across pages */
     .cv-entry {
         break-inside: avoid;
         page-break-inside: avoid;
     }
 
-    /* Ensure the skills list doesn't get cut off weirdly */
     .cv-skills-list {
         break-inside: avoid;
         page-break-inside: avoid;
-    }
-    
-    /* ── Force skills to display as separate items in print ── */
-    .cv-skills-list {
         display: block !important;
         margin: 10px 0 0 !important;
     }
@@ -390,5 +397,10 @@
 
     .cv-skills-list li::before {
         content: "•" !important;
+    }
+
+    @page {
+        margin: 0;
+        size: A4;
     }
 }
