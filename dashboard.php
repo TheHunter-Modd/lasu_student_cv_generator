@@ -83,15 +83,49 @@ if (!isset($_SESSION["user_id"])) {
                 <div class="actions">
                     <input type="text" placeholder="Search task, meeting, projects...">
                     <div class="icons">
-                        <span><img src="assets/calendar.svg"></span>
-                        <span><img src="assets/bell-dot.svg"></span>
+                       <!--<span><img src="assets/calendar.svg"></span>
+                        <span><img src="assets/bell-dot.svg"></span>-->
                         <span><img src="assets/settings.svg"></span>
                     </div>
-                    <div class="profile">
-                        <div class="avatar">V</div>
-                        <div class="info">
-                            <strong><?php echo $_SESSION["user_matric"]; ?></strong>
-                            <small>LASU Student</small>
+                    <div class="profile-wrap" id="profileWrap">
+                        <div class="profile" onclick="toggleProfile()" style="cursor:pointer;">
+                            <div class="avatar"><?php echo strtoupper(substr($_SESSION["user_matric"], 0, 1)); ?></div>
+                            <div class="info">
+                                <strong><?php echo $_SESSION["user_matric"]; ?></strong>
+                                <small>LASU Student</small>
+                            </div>
+                            <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <div class="profile-dropdown" id="profileDropdown">
+                            <div class="pd-header">
+                                <div class="pd-avatar"><?php echo strtoupper(substr($_SESSION["user_matric"], 0, 1)); ?></div>
+                                <div class="pd-info">
+                                    <strong><?php echo htmlspecialchars($_SESSION["user_matric"]); ?></strong>
+                                    <small>LASU Student</small>
+                                </div>
+                            </div>
+                            <div class="pd-links">
+                                <a href="dashboard.php" class="pd-item">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                    <span>Dashboard</span>
+                                    <kbd>D</kbd>
+                                </a>
+                                <a href="builder.php" class="pd-item">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    <span>Edit CV</span>
+                                    <kbd>E</kbd>
+                                </a>
+                                <a href="preview.php" class="pd-item">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <span>Preview CV</span>
+                                    <kbd>P</kbd>
+                                </a>
+                            </div>
+                            <div class="pd-divider"></div>
+                            <a href="includes/logout.inc.php" class="pd-item danger">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                <span>Log Out</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -314,6 +348,37 @@ document.addEventListener('DOMContentLoaded', function () {
             if (sidebar && sidebar.classList.contains('open')) toggleSidebar();
         }
     });
+});
+
+/* ── Profile dropdown ── */
+function toggleProfile() {
+    var wrap = document.getElementById('profileWrap');
+    var dd   = document.getElementById('profileDropdown');
+    if (!wrap || !dd) return;
+
+    var isOpen = dd.classList.toggle('open');
+    wrap.classList.toggle('open', isOpen);
+}
+
+function closeProfile() {
+    var wrap = document.getElementById('profileWrap');
+    var dd   = document.getElementById('profileDropdown');
+    if (!wrap || !dd) return;
+    dd.classList.remove('open');
+    wrap.classList.remove('open');
+}
+
+// Close on outside click
+document.addEventListener('click', function (e) {
+    var wrap = document.getElementById('profileWrap');
+    if (wrap && !wrap.contains(e.target)) {
+        closeProfile();
+    }
+});
+
+// Close on Escape
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeProfile();
 });
 </script>
 
