@@ -116,15 +116,14 @@ require_once 'includes/preview_contr.inc.php';
                     Back to Dashboard
                 </a>
 
-                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <span style="font-size: 0.85rem; font-weight: 600; color: #555;">Template:</span>
+                <div class="toolbar-right">
+                    <div class="template-switcher">
+                        <span class="template-label">Template:</span>
                         <button onclick="switchTemplate('classic')" class="template-btn <?= $chosen_template === 'classic' ? 'active' : '' ?>" data-template="classic">Classic</button>
                         <button onclick="switchTemplate('professional')" class="template-btn <?= $chosen_template === 'professional' ? 'active' : '' ?>" data-template="professional">Professional</button>
                         <button onclick="switchTemplate('academic')" class="template-btn <?= $chosen_template === 'academic' ? 'active' : '' ?>" data-template="academic">Academic</button>
                     </div>
 
-                    <!-- ★ KEY FIX: printCV() instead of window.print() -->
                     <button class="btn-download" onclick="printCV()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><rect x="6" y="14" width="12" height="8"/></svg>
                         Download PDF
@@ -358,27 +357,62 @@ function setTab(tab) {
 
 setTab('<?= $active_tab ?>');
 
+/* ══════════════════════════════════════════════════════════
+   ★★★ TEMPLATE SWITCHER — FIXED ★★★
+
+   OLD BUG: switchTemplate() only swapped the CSS file.
+   It did NOT change the HTML structure. So if the page
+   was loaded with the Classic template (Summary → Education
+   → Experience → Volunteer → Skills), switching to Academic
+   would only change the CSS styling, NOT the section order.
+   
+   The Academic template needs DIFFERENT HTML:
+   Education → Coursework → Honors → Societies → Summary
+   → Experience → Skills
+   
+   You can't reorder PHP-rendered sections with CSS alone.
+   
+   FIX: Save the template choice to the database, then
+   RELOAD THE PAGE so PHP re-renders the correct HTML
+   structure for the selected template.
+   
+   This also guarantees PC and mobile stay in sync because
+   both always read the template choice from the same
+   database row on every page load.
+   ══════════════════════════════════════════════════════════ */
+
 function switchTemplate(templateName) {
+    // 1. Visual feedback: highlight the clicked button immediately
     document.querySelectorAll('.template-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.template === templateName);
     });
 
-    const templateLink = document.querySelector('link[href*="css/templates/"]');
-    if (templateLink) {
-        templateLink.href = 'css/templates/' + templateName + '.css?v=' + Date.now();
+    // 2. Show a brief "switching" state
+    var btnClicked = document.querySelector('.template-btn[data-template="' + templateName + '"]');
+    if (btnClicked) {
+        btnClicked.textContent = 'Switching...';
     }
 
+    // 3. Save the choice to the database, then reload
     fetch('includes/save_template.inc.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'template=' + templateName + '&user_id=<?= $_SESSION["user_id"] ?>'
     })
-    .then(response => response.text())
-    .then(data => {
-        console.log('Template saved to database:', data);
+    .then(function (response) {
+        // ★ RELOAD the page so PHP renders the correct HTML structure
+        var url = new URL(window.location);
+        url.searchParams.set('template', templateName);
+        url.searchParams.set('t', Date.now()); // cache buster
+        window.location.href = url.toString();
     })
-    .catch(error => {
+    .catch(function (error) {
         console.error('Error saving template:', error);
+        // Still reload even if save failed
+        var url = new URL(window.location);
+        url.searchParams.set('template', templateName);
+        url.searchParams.set('t', Date.now());
+        window.location.href = url.toString();
     });
 }
 

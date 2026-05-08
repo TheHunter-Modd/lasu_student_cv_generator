@@ -9,41 +9,38 @@
    ──────────────────────────────────────────────────────── */
 
 function toggleMobileMenu() {
-  const sidebar  = document.querySelector('.sidebar');
-  const overlay  = document.querySelector('.sidebar-overlay');
+  var sidebar = document.querySelector('.sidebar');
+  var overlay = document.querySelector('.sidebar-overlay');
   if (!sidebar) return;
   sidebar.classList.toggle('open');
   if (overlay) overlay.classList.toggle('open');
 }
 
-// Close sidebar when a nav link is clicked on mobile
 document.addEventListener('DOMContentLoaded', function () {
-  const menuLinks = document.querySelectorAll('.sidebar .menu a, .sidebar .logout');
-  menuLinks.forEach(function (link) {
-    link.addEventListener('click', function () {
+  var menuLinks = document.querySelectorAll('.sidebar .menu a, .sidebar .logout');
+  for (var i = 0; i < menuLinks.length; i++) {
+    menuLinks[i].addEventListener('click', function () {
       if (window.innerWidth <= 768) {
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.querySelector('.sidebar-overlay');
+        var sidebar = document.querySelector('.sidebar');
+        var overlay = document.querySelector('.sidebar-overlay');
         if (sidebar) sidebar.classList.remove('open');
         if (overlay) overlay.classList.remove('open');
       }
     });
-  });
+  }
 });
 
 
 /* ─────────────────────────────────────────────────────────
    2. CV PAPER DYNAMIC SCALE (preview.php only)
-   Reads viewport width and calculates scale so the 794px
-   A4 paper fits on mobile without horizontal scroll.
    ──────────────────────────────────────────────────────── */
 
 function scaleCVPaper() {
   var paper = document.querySelector('.cv-paper');
   if (!paper) return;
 
-  var PAPER_WIDTH = 794;   // A4 at 96dpi
-  var PADDING     = 32;    // 16px each side
+  var PAPER_WIDTH = 794;
+  var PADDING     = 32;
 
   if (window.innerWidth <= 768) {
     var availableWidth = window.innerWidth - PADDING;
@@ -53,9 +50,9 @@ function scaleCVPaper() {
     paper.style.transform       = 'scale(' + scale + ')';
     paper.style.transformOrigin = 'top center';
 
-    var paperHeight    = paper.offsetHeight || 1123;
-    var scaledHeight   = paperHeight * scale;
-    var heightLoss     = paperHeight - scaledHeight;
+    var paperHeight  = paper.offsetHeight || 1123;
+    var scaledHeight = paperHeight * scale;
+    var heightLoss   = paperHeight - scaledHeight;
     paper.style.marginBottom = '-' + heightLoss + 'px';
   } else {
     document.documentElement.style.removeProperty('--cv-scale');
@@ -70,19 +67,28 @@ window.addEventListener('resize', scaleCVPaper);
 
 
 /* ─────────────────────────────────────────────────────────
-   3. PRINT HANDLING — strips transform BEFORE printing,
-      restores it AFTER.
+   3. PRINT HANDLING
 
-      ★★★ THIS IS THE FIX ★★★
+   ★★★ WHY MOBILE PRINT FAILS ★★★
 
-      On mobile, the CV paper has transform: scale(0.42) so
-      it fits on screen. When the user taps "Download PDF",
-      the browser captures the CURRENT visual state for the
-      print preview — including that tiny scale. Result: a
-      miniature CV in the corner of an A4 page.
+   Problem 1: iOS Safari does NOT support window.print().
+   Calling it does absolutely nothing — no error, no dialog.
 
-      fix: Strip the transform, wait for re-render, THEN
-      print. After printing, restore the transform.
+   Problem 2: Some Android browsers require window.print()
+   to be called directly from a user tap handler. Wrapping
+   it in requestAnimationFrame() breaks that "user gesture"
+   chain, so the browser silently blocks the call.
+
+   Problem 3: If _stripForPrint() throws any error, the
+   entire printCV() function dies and nothing happens.
+
+   FIX:
+   - Use setTimeout(300ms) instead of requestAnimationFrame
+     (keeps the call closer to the user gesture)
+   - Wrap everything in try/catch so errors don't kill it
+   - If window.print() doesn't work, show a helpful modal
+     with instructions for iOS/Android users
+   - Always call scaleCVPaper() as ultimate fallback restore
    ──────────────────────────────────────────────────────── */
 
 var _printState = {
@@ -95,44 +101,38 @@ var _printState = {
   overlayOpen: false
 };
 
-/* Save current mobile state and strip all scaling */
 function _stripForPrint() {
   var paper = document.querySelector('.cv-paper');
   if (!paper) return;
 
-  // Save current values
   _printState.transform       = paper.style.transform;
   _printState.transformOrigin = paper.style.transformOrigin;
   _printState.marginBottom    = paper.style.marginBottom;
   _printState.cvScale         = document.documentElement.style.getPropertyValue('--cv-scale');
   _printState.bodyOverflow    = document.body.style.overflow;
 
-  // Check sidebar state
   var sidebar = document.querySelector('.sidebar');
   var overlay = document.querySelector('.sidebar-overlay');
   _printState.sidebarOpen = sidebar ? sidebar.classList.contains('open') : false;
   _printState.overlayOpen = overlay ? overlay.classList.contains('open') : false;
 
-  // ★ Strip the mobile scale transform
+  // Strip the mobile scale
   paper.style.transform       = 'none';
   paper.style.transformOrigin = 'top left';
   paper.style.marginBottom    = '0';
-
-  // Remove CSS variable
   document.documentElement.style.removeProperty('--cv-scale');
-
-  // Reset body overflow (JS may have set hidden)
   document.body.style.overflow = '';
 
-  // Close sidebar if open
   if (sidebar && sidebar.classList.contains('open')) sidebar.classList.remove('open');
   if (overlay && overlay.classList.contains('open')) overlay.classList.remove('open');
 }
 
-/* Restore mobile state after printing */
 function _restoreAfterPrint() {
   var paper = document.querySelector('.cv-paper');
-  if (!paper) return;
+  if (!paper) {
+    scaleCVPaper();
+    return;
+  }
 
   paper.style.transform       = _printState.transform;
   paper.style.transformOrigin = _printState.transformOrigin;
@@ -144,7 +144,6 @@ function _restoreAfterPrint() {
 
   document.body.style.overflow = _printState.bodyOverflow;
 
-  // Restore sidebar if it was open
   if (_printState.sidebarOpen) {
     var sidebar = document.querySelector('.sidebar');
     if (sidebar) sidebar.classList.add('open');
@@ -155,38 +154,105 @@ function _restoreAfterPrint() {
   }
 }
 
-/* Modern browsers fire beforeprint/afterprint events */
+/* beforeprint/afterprint — backup for browsers that support them */
 window.addEventListener('beforeprint', function () {
-  _stripForPrint();
+  try { _stripForPrint(); } catch (e) {}
 });
 
 window.addEventListener('afterprint', function () {
-  _restoreAfterPrint();
+  try { _restoreAfterPrint(); } catch (e) { scaleCVPaper(); }
 });
 
-/* ★★★ printCV() — THE FUNCTION TO CALL FROM THE BUTTON ★★★
 
-   Why not just use window.print()?
-   - Many mobile browsers (Android Chrome, Samsung Internet,
-     iOS Safari) do NOT reliably fire beforeprint/afterprint
-   - So we manually strip the transform, wait for the
-     browser to re-render, then call window.print()
-   - After the print dialog closes, we restore everything
-*/
+/* ══════════════════════════════════════════════════════════
+   ★★★ printCV() — THE MAIN FUNCTION ★★★
+
+   Called by: onclick="printCV()" on the Download PDF button
+
+   Flow:
+   1. Strip mobile transform (try/catch protected)
+   2. Wait 300ms (not rAF — keeps user gesture chain alive)
+   3. Try window.print()
+   4. If it fails or is unsupported, show instruction modal
+   5. Restore transform after everything
+   ══════════════════════════════════════════════════════════ */
+
 function printCV() {
-  _stripForPrint();
+  // Step 1: Strip mobile scaling
+  try {
+    _stripForPrint();
+  } catch (e) {
+    console.warn('printCV: stripForPrint failed', e);
+  }
 
-  // Wait TWO animation frames to ensure the browser has
-  // actually re-rendered the page without the transform
-  requestAnimationFrame(function () {
-    requestAnimationFrame(function () {
-      window.print();
+  // Step 2: Wait 300ms then try to print
+  // Using setTimeout instead of requestAnimationFrame because:
+  // - rAF breaks the "user gesture" chain on some mobile browsers
+  // - 300ms gives the browser time to re-render without the transform
+  setTimeout(function () {
 
-      // Restore after a short delay (gives the print
-      // dialog time to capture the full-size version)
-      setTimeout(function () {
+    // Step 3: Try window.print()
+    var printSupported = false;
+
+    try {
+      if (typeof window.print === 'function') {
+        window.print();
+        printSupported = true;
+      }
+    } catch (e) {
+      console.warn('printCV: window.print() threw error', e);
+    }
+
+    // Step 4: If print didn't work, show instructions
+    if (!printSupported) {
+      _showPrintInstructions();
+    }
+
+    // Step 5: Restore mobile scaling after a delay
+    setTimeout(function () {
+      try {
         _restoreAfterPrint();
-      }, 600);
-    });
-  });
+      } catch (e) {
+        // Ultimate fallback: just re-run the scale function
+        scaleCVPaper();
+      }
+    }, 800);
+
+  }, 300);
 }
+
+
+/* ─────────────────────────────────────────────────────────
+   4. PRINT INSTRUCTIONS MODAL
+
+   Shows when window.print() is not available (iOS Safari)
+   or fails for any reason. Gives step-by-step instructions
+   for saving as PDF using the browser's built-in menu.
+   ──────────────────────────────────────────────────────── */
+
+function _showPrintInstructions() {
+  // Don't create duplicate modals
+  if (document.getElementById('cv-print-modal')) return;
+
+  // Detect platform
+  var ua = navigator.userAgent || '';
+  var isIOS     = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  var isAndroid = /Android/.test(ua);
+
+  var iosSteps = '' +
+    '<div style="text-align:left;margin-bottom:16px;">' +
+      '<p style="margin:0 0 6px;font-weight:700;color:#1a1d2e;font-size:14px;">📱 iPhone / iPad:</p>' +
+      '<ol style="margin:0;padding-left:20px;font-size:13px;color:#555;line-height:1.9;">' +
+        '<li>Tap the <strong>Share button</strong> ( <svg style="display:inline;vertical-align:middle" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> ) at the bottom of Safari</li>' +
+        '<li>Scroll down and tap <strong>"Print"</strong></li>' +
+        '<li>Pinch outward on the print preview</li>' +
+        '<li>Tap the <strong>Share button</strong> again</li>' +
+        '<li>Tap <strong>"Save to Files"</strong> or <strong>"Save PDF to iBooks"</strong></li>' +
+      '</ol>' +
+    '</div>';
+
+  var androidSteps = '' +
+    '<div style="text-align:left;margin-bottom:16px;">' +
+      '<p style="margin:0 0 6px;font-weight:700;color:#1a1d2e;font-size:14px;">🤖 Android:</p>' +
+      '<ol style="margin:0;padding-left:20px;font-size:13px;color:#555;line-height:1.9;">' +
+        '<li>Tap the <strong>three dots menu</strong> ( ⋮ ) in Chrome</li>' +
