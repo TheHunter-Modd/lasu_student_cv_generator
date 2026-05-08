@@ -152,26 +152,47 @@ require_once 'includes/preview_contr.inc.php';
                     <?= $cv_data['personal']['full_name'] ?: 'YOUR NAME' ?>
                 </h1>
                 <?php $p = $cv_data['personal']; ?>
-                <?php if ($p['email'] || $p['phone'] || $p['address'] || $p['linkedin_url']): ?>
+                <?php
+                  // Build contact items — skip duplicates (e.g. if address contains the email)
+                  $contact_items = [];
+
+                  // Address (skip if it duplicates email or phone)
+                  if (!empty($p['address']) && $p['address'] !== $p['email'] && $p['address'] !== $p['phone']) {
+                      $contact_items[] = [
+                          'icon' => '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+                          'text' => $p['address']
+                      ];
+                  }
+                  // Phone
+                  if (!empty($p['phone'])) {
+                      $contact_items[] = [
+                          'icon' => '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l1.02-.93a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+                          'text' => $p['phone']
+                      ];
+                  }
+                  // Email
+                  if (!empty($p['email'])) {
+                      $contact_items[] = [
+                          'icon' => '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+                          'text' => $p['email']
+                      ];
+                  }
+                  // LinkedIn (was checked in old if-condition but never actually displayed)
+                  if (!empty($p['linkedin_url'])) {
+                      $contact_items[] = [
+                          'icon' => '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>',
+                          'text' => $p['linkedin_url']
+                      ];
+                  }
+                ?>
+                <?php if (!empty($contact_items)): ?>
                 <div class="cv-contact-row">
-                    <?php if ($p['address']): ?>
+                    <?php foreach ($contact_items as $item): ?>
                     <span class="cv-contact-item">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <?= $p['address'] ?>
+                        <?= $item['icon'] ?>
+                        <?= htmlspecialchars($item['text']) ?>
                     </span>
-                    <?php endif; ?>
-                    <?php if ($p['phone']): ?>
-                    <span class="cv-contact-item">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l1.02-.93a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <?= $p['phone'] ?>
-                    </span>
-                    <?php endif; ?>
-                    <?php if ($p['email']): ?>
-                    <span class="cv-contact-item">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                        <?= $p['email'] ?>
-                    </span>
-                    <?php endif; ?>
+                    <?php endforeach; ?>
                 </div>
                 <?php endif; ?>
             </div>
@@ -357,58 +378,29 @@ function setTab(tab) {
 
 setTab('<?= $active_tab ?>');
 
-/* ══════════════════════════════════════════════════════════
-   ★★★ TEMPLATE SWITCHER — FIXED ★★★
-
-   OLD BUG: switchTemplate() only swapped the CSS file.
-   It did NOT change the HTML structure. So if the page
-   was loaded with the Classic template (Summary → Education
-   → Experience → Volunteer → Skills), switching to Academic
-   would only change the CSS styling, NOT the section order.
-   
-   The Academic template needs DIFFERENT HTML:
-   Education → Coursework → Honors → Societies → Summary
-   → Experience → Skills
-   
-   You can't reorder PHP-rendered sections with CSS alone.
-   
-   FIX: Save the template choice to the database, then
-   RELOAD THE PAGE so PHP re-renders the correct HTML
-   structure for the selected template.
-   
-   This also guarantees PC and mobile stay in sync because
-   both always read the template choice from the same
-   database row on every page load.
-   ══════════════════════════════════════════════════════════ */
-
 function switchTemplate(templateName) {
-    // 1. Visual feedback: highlight the clicked button immediately
     document.querySelectorAll('.template-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.template === templateName);
     });
 
-    // 2. Show a brief "switching" state
     var btnClicked = document.querySelector('.template-btn[data-template="' + templateName + '"]');
     if (btnClicked) {
         btnClicked.textContent = 'Switching...';
     }
 
-    // 3. Save the choice to the database, then reload
     fetch('includes/save_template.inc.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'template=' + templateName + '&user_id=<?= $_SESSION["user_id"] ?>'
     })
     .then(function (response) {
-        // ★ RELOAD the page so PHP renders the correct HTML structure
         var url = new URL(window.location);
         url.searchParams.set('template', templateName);
-        url.searchParams.set('t', Date.now()); // cache buster
+        url.searchParams.set('t', Date.now());
         window.location.href = url.toString();
     })
     .catch(function (error) {
         console.error('Error saving template:', error);
-        // Still reload even if save failed
         var url = new URL(window.location);
         url.searchParams.set('template', templateName);
         url.searchParams.set('t', Date.now());
