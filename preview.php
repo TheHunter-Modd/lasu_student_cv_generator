@@ -16,16 +16,17 @@ require_once 'includes/preview_contr.inc.php';
     <link rel="stylesheet" href="css/dashboard.css">
     <?php 
     // 1. Get the chosen template from the data, default to 'classic'
-        $chosen_template = $cv_data['personal']['template_choice'] ?? 'classic';
+    $chosen_template = $cv_data['personal']['template_choice'] ?? 'classic';
     
     // 2. Security: Only allow these exact file names (prevents hacking)
-        $allowed_templates = ['classic', 'professional', 'academic'];
+    $allowed_templates = ['classic', 'professional', 'academic'];
     if (!in_array($chosen_template, $allowed_templates)) {
         $chosen_template = 'classic';
     }
 ?>
 <link rel="stylesheet" href="css/preview.css?v=4"> <!-- Main print/layout rules -->
 <link rel="stylesheet" href="css/templates/<?= $chosen_template ?>.css?v=1"> <!-- Dynamic Template! -->
+<link rel="stylesheet" href="css/mobile-responsive.css">
 </head>
 <body>
 
@@ -162,7 +163,7 @@ require_once 'includes/preview_contr.inc.php';
                         <?= $p['address'] ?>
                     </span>
                     <?php endif; ?>
-                                        <?php if ($p['phone']): ?>
+                    <?php if ($p['phone']): ?>
                     <span class="cv-contact-item">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.59 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.13 6.13l1.02-.93a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                         <?= $p['phone'] ?>
@@ -325,6 +326,7 @@ require_once 'includes/preview_contr.inc.php';
     </div><!-- /main -->
 </div><!-- /dashboard -->
 
+<script src="js/mobile.js"></script>
 <script>
 const TAB_MAP = {
     personal : ['section-personal', 'section-summary', 'section-skills'],

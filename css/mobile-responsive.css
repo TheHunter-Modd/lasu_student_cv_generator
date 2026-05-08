@@ -1,0 +1,225 @@
+/* ============================================================
+   LASU CV GENERATOR — MOBILE RESPONSIVE FIX
+   css/mobile-responsive.css
+
+   WHAT THIS FILE DOES (that dashboard.css does NOT handle):
+   - Global overflow-x prevention on html/body
+   - Responsive image constraints
+   - Form input max-width to prevent overflow
+   - Tablet tweaks at 1024px
+   - Builder step scrolling + form stacking at 768px
+   - Preview toolbar stacking + CV paper scaling at 768px
+   - Small phone adjustments at 480px
+   - Print styles that strip shell and render only CV paper
+   ============================================================ */
+
+
+/* ─────────────────────────────────────────────────────────
+   SECTION 1 — GLOBAL RESETS
+   ──────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+textarea,
+select {
+  max-width: 100%;
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   SECTION 2 — TABLET  (≤ 1024px)
+   ──────────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+
+  .sidebar {
+    width: 200px;
+    min-width: 200px;
+  }
+
+  .actions input[type="text"] {
+    width: 140px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   SECTION 3 — PREVIEW PAGE MOBILE  (≤ 768px)
+   dashboard.css already handles sidebar, hamburger, tabs,
+   and content layout. This section only adds what
+   dashboard.css doesn't cover: the preview/CV paper.
+   ──────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+
+  /* Builder steps: horizontal scroll */
+  .builder-container {
+    padding: 12px 16px;
+  }
+
+  .builder-steps {
+    overflow-x: auto;
+    white-space: nowrap;
+    display: flex;
+    gap: 8px;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    justify-content: flex-start;
+  }
+
+  .builder-steps::-webkit-scrollbar {
+    display: none;
+  }
+
+  .builder-steps .step {
+    flex-shrink: 0;
+  }
+
+  /* Form grid: 1 column on mobile */
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  .form-group.full {
+    grid-column: 1 / -1;
+  }
+
+  .builder-card textarea {
+    min-height: 120px;
+    width: 100%;
+  }
+
+  /* Builder footer: stack buttons */
+  .builder-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .builder-footer button {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .skill-input {
+    flex-wrap: wrap;
+  }
+
+  .skill-input input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Preview page toolbar */
+  .preview-body {
+    padding: 12px 8px;
+  }
+
+  .preview-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .template-btn {
+    flex-shrink: 0;
+  }
+
+  .btn-download {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* CV paper: scale to fit without horizontal scroll */
+  .cv-wrapper {
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+  }
+
+  .cv-paper {
+    transform-origin: top center;
+    transform: scale(var(--cv-scale, 0.42));
+    margin-bottom: calc((var(--cv-scale, 0.42) - 1) * 1120px);
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   SECTION 4 — SMALL PHONES  (≤ 480px)
+   ──────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+
+  .card,
+  .section-card,
+  .builder-card {
+    padding: 14px 12px;
+  }
+
+  .page-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .form-group label {
+    font-size: 0.82rem;
+  }
+
+  .cv-paper {
+    margin-bottom: calc((var(--cv-scale, 0.36) - 1) * 1120px);
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   SECTION 5 — PRINT
+   ──────────────────────────────────────────────────────── */
+
+@media print {
+
+  .sidebar,
+  .sidebar-overlay,
+  .mobile-menu-btn,
+  .header-area,
+  .preview-toolbar,
+  .back-link {
+    display: none !important;
+  }
+
+  .main,
+  .preview-body,
+  .cv-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .cv-paper {
+    transform: none !important;
+    margin-bottom: 0 !important;
+    width: 210mm;
+    min-height: 297mm;
+    box-shadow: none !important;
+  }
+}
