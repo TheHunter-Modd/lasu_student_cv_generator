@@ -69,52 +69,55 @@ window.addEventListener('resize', scaleCVPaper);
 /* ─────────────────────────────────────────────────────────
    3. PRINT HANDLING
 
-   ★★★ WHY MOBILE PRINT FAILS ★★★
+   WHY THE PREVIOUS VERSION BROKE:
+   - File was cut off mid-function → syntax error → entire
+     JS file fails to load → printCV is never defined
+   - beforeprint/afterprint listeners overwrote the saved
+     transform state, breaking the restore
 
-   Problem 1: iOS Safari does NOT support window.print().
-   Calling it does absolutely nothing — no error, no dialog.
-
-   Problem 2: Some Android browsers require window.print()
-   to be called directly from a user tap handler. Wrapping
-   it in requestAnimationFrame() breaks that "user gesture"
-   chain, so the browser silently blocks the call.
-
-   Problem 3: If _stripForPrint() throws any error, the
-   entire printCV() function dies and nothing happens.
-
-   FIX:
-   - Use setTimeout(300ms) instead of requestAnimationFrame
-     (keeps the call closer to the user gesture)
-   - Wrap everything in try/catch so errors don't kill it
-   - If window.print() doesn't work, show a helpful modal
-     with instructions for iOS/Android users
-   - Always call scaleCVPaper() as ultimate fallback restore
+   THIS VERSION:
+   - No beforeprint/afterprint (they caused double-strip bugs)
+   - Desktop: calls window.print() directly (no delay needed)
+   - Mobile: strips transform with short delay, then prints
+   - If window.print() fails (iOS), shows instruction modal
+   - Complete file — no cut-offs
    ──────────────────────────────────────────────────────── */
 
-var _printState = {
-  transform: '',
-  transformOrigin: '',
-  marginBottom: '',
-  cvScale: '',
-  bodyOverflow: '',
-  sidebarOpen: false,
-  overlayOpen: false
-};
+function printCV() {
 
-function _stripForPrint() {
+  /* ── DESKTOP: Just print directly ── */
+  if (window.innerWidth > 768) {
+    try {
+      window.print();
+    } catch (e) {
+      console.warn('printCV: window.print() failed on desktop', e);
+      _showPrintInstructions();
+    }
+    return;
+  }
+
+  /* ── MOBILE: Strip transform first, then print ── */
+
+  // Save current state
   var paper = document.querySelector('.cv-paper');
-  if (!paper) return;
+  if (!paper) {
+    try { window.print(); } catch (e) {}
+    return;
+  }
 
-  _printState.transform       = paper.style.transform;
-  _printState.transformOrigin = paper.style.transformOrigin;
-  _printState.marginBottom    = paper.style.marginBottom;
-  _printState.cvScale         = document.documentElement.style.getPropertyValue('--cv-scale');
-  _printState.bodyOverflow    = document.body.style.overflow;
+  var savedTransform       = paper.style.transform;
+  var savedTransformOrigin = paper.style.transformOrigin;
+  var savedMarginBottom    = paper.style.marginBottom;
+  var savedCVScale         = document.documentElement.style.getPropertyValue('--cv-scale');
+  var savedBodyOverflow    = document.body.style.overflow;
 
+  // Close sidebar if open
   var sidebar = document.querySelector('.sidebar');
   var overlay = document.querySelector('.sidebar-overlay');
-  _printState.sidebarOpen = sidebar ? sidebar.classList.contains('open') : false;
-  _printState.overlayOpen = overlay ? overlay.classList.contains('open') : false;
+  var wasSidebarOpen = sidebar ? sidebar.classList.contains('open') : false;
+  var wasOverlayOpen = overlay ? overlay.classList.contains('open') : false;
+  if (sidebar) sidebar.classList.remove('open');
+  if (overlay) overlay.classList.remove('open');
 
   // Strip the mobile scale
   paper.style.transform       = 'none';
@@ -123,136 +126,123 @@ function _stripForPrint() {
   document.documentElement.style.removeProperty('--cv-scale');
   document.body.style.overflow = '';
 
-  if (sidebar && sidebar.classList.contains('open')) sidebar.classList.remove('open');
-  if (overlay && overlay.classList.contains('open')) overlay.classList.remove('open');
-}
-
-function _restoreAfterPrint() {
-  var paper = document.querySelector('.cv-paper');
-  if (!paper) {
-    scaleCVPaper();
-    return;
-  }
-
-  paper.style.transform       = _printState.transform;
-  paper.style.transformOrigin = _printState.transformOrigin;
-  paper.style.marginBottom    = _printState.marginBottom;
-
-  if (_printState.cvScale) {
-    document.documentElement.style.setProperty('--cv-scale', _printState.cvScale);
-  }
-
-  document.body.style.overflow = _printState.bodyOverflow;
-
-  if (_printState.sidebarOpen) {
-    var sidebar = document.querySelector('.sidebar');
-    if (sidebar) sidebar.classList.add('open');
-  }
-  if (_printState.overlayOpen) {
-    var overlay = document.querySelector('.sidebar-overlay');
-    if (overlay) overlay.classList.add('open');
-  }
-}
-
-/* beforeprint/afterprint — backup for browsers that support them */
-window.addEventListener('beforeprint', function () {
-  try { _stripForPrint(); } catch (e) {}
-});
-
-window.addEventListener('afterprint', function () {
-  try { _restoreAfterPrint(); } catch (e) { scaleCVPaper(); }
-});
-
-
-/* ══════════════════════════════════════════════════════════
-   ★★★ printCV() — THE MAIN FUNCTION ★★★
-
-   Called by: onclick="printCV()" on the Download PDF button
-
-   Flow:
-   1. Strip mobile transform (try/catch protected)
-   2. Wait 300ms (not rAF — keeps user gesture chain alive)
-   3. Try window.print()
-   4. If it fails or is unsupported, show instruction modal
-   5. Restore transform after everything
-   ══════════════════════════════════════════════════════════ */
-
-function printCV() {
-  // Step 1: Strip mobile scaling
-  try {
-    _stripForPrint();
-  } catch (e) {
-    console.warn('printCV: stripForPrint failed', e);
-  }
-
-  // Step 2: Wait 300ms then try to print
-  // Using setTimeout instead of requestAnimationFrame because:
-  // - rAF breaks the "user gesture" chain on some mobile browsers
-  // - 300ms gives the browser time to re-render without the transform
+  // Wait briefly for re-render, then print
   setTimeout(function () {
 
-    // Step 3: Try window.print()
-    var printSupported = false;
+    var printWorked = false;
 
     try {
       if (typeof window.print === 'function') {
         window.print();
-        printSupported = true;
+        printWorked = true;
       }
     } catch (e) {
       console.warn('printCV: window.print() threw error', e);
     }
 
-    // Step 4: If print didn't work, show instructions
-    if (!printSupported) {
-      _showPrintInstructions();
-    }
-
-    // Step 5: Restore mobile scaling after a delay
+    // Restore everything
     setTimeout(function () {
-      try {
-        _restoreAfterPrint();
-      } catch (e) {
-        // Ultimate fallback: just re-run the scale function
-        scaleCVPaper();
-      }
-    }, 800);
+      paper.style.transform       = savedTransform;
+      paper.style.transformOrigin = savedTransformOrigin;
+      paper.style.marginBottom    = savedMarginBottom;
 
-  }, 300);
+      if (savedCVScale) {
+        document.documentElement.style.setProperty('--cv-scale', savedCVScale);
+      }
+
+      document.body.style.overflow = savedBodyOverflow;
+
+      if (wasSidebarOpen && sidebar) sidebar.classList.add('open');
+      if (wasOverlayOpen && overlay) overlay.classList.add('open');
+
+      // If print didn't work (iOS), show instructions
+      if (!printWorked) {
+        _showPrintInstructions();
+      }
+    }, 600);
+
+  }, 150);
 }
 
 
 /* ─────────────────────────────────────────────────────────
    4. PRINT INSTRUCTIONS MODAL
 
-   Shows when window.print() is not available (iOS Safari)
-   or fails for any reason. Gives step-by-step instructions
-   for saving as PDF using the browser's built-in menu.
+   Shows when window.print() is not available (iOS Safari).
    ──────────────────────────────────────────────────────── */
 
 function _showPrintInstructions() {
-  // Don't create duplicate modals
   if (document.getElementById('cv-print-modal')) return;
 
-  // Detect platform
   var ua = navigator.userAgent || '';
-  var isIOS     = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  var isIOS     = /iPad|iPhone|iPod/.test(ua);
   var isAndroid = /Android/.test(ua);
 
-  var iosSteps = '' +
+  var iosHtml =
     '<div style="text-align:left;margin-bottom:16px;">' +
-      '<p style="margin:0 0 6px;font-weight:700;color:#1a1d2e;font-size:14px;">📱 iPhone / iPad:</p>' +
+      '<p style="margin:0 0 6px;font-weight:700;color:#1a1d2e;font-size:14px;">iPhone / iPad:</p>' +
       '<ol style="margin:0;padding-left:20px;font-size:13px;color:#555;line-height:1.9;">' +
-        '<li>Tap the <strong>Share button</strong> ( <svg style="display:inline;vertical-align:middle" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> ) at the bottom of Safari</li>' +
-        '<li>Scroll down and tap <strong>"Print"</strong></li>' +
+        '<li>Tap the <b>Share button</b> at the bottom of Safari</li>' +
+        '<li>Scroll down and tap <b>Print</b></li>' +
         '<li>Pinch outward on the print preview</li>' +
-        '<li>Tap the <strong>Share button</strong> again</li>' +
-        '<li>Tap <strong>"Save to Files"</strong> or <strong>"Save PDF to iBooks"</strong></li>' +
+        '<li>Tap <b>Share</b> again, then <b>Save to Files</b></li>' +
       '</ol>' +
     '</div>';
 
-  var androidSteps = '' +
+  var androidHtml =
     '<div style="text-align:left;margin-bottom:16px;">' +
-      '<p style="margin:0 0 6px;font-weight:700;color:#1a1d2e;font-size:14px;">🤖 Android:</p>' +
+      '<p style="margin:0 0 6px;font-weight:700;color:#1a1d2e;font-size:14px;">Android:</p>' +
       '<ol style="margin:0;padding-left:20px;font-size:13px;color:#555;line-height:1.9;">' +
-        '<li>Tap the <strong>three dots menu</strong> ( ⋮ ) in Chrome</li>' +
+        '<li>Tap the <b>three dots menu</b> in Chrome</li>' +
+        '<li>Tap <b>Share</b>, then <b>Print</b></li>' +
+        '<li>Select <b>Save as PDF</b> from the printer dropdown</li>' +
+        '<li>Tap <b>Save</b></li>' +
+      '</ol>' +
+    '</div>';
+
+  var desktopHtml =
+    '<div style="text-align:left;margin-bottom:16px;">' +
+      '<p style="margin:0 0 6px;font-weight:700;color:#1a1d2e;font-size:14px;">Desktop:</p>' +
+      '<ol style="margin:0;padding-left:20px;font-size:13px;color:#555;line-height:1.9;">' +
+        '<li>Press <b>Ctrl + P</b> (Windows) or <b>Cmd + P</b> (Mac)</li>' +
+        '<li>Set destination to <b>Save as PDF</b></li>' +
+        '<li>Click <b>Save</b></li>' +
+      '</ol>' +
+    '</div>';
+
+  var stepsHtml = '';
+  if (isIOS) {
+    stepsHtml = iosHtml;
+  } else if (isAndroid) {
+    stepsHtml = androidHtml + iosHtml;
+  } else {
+    stepsHtml = desktopHtml + androidHtml + iosHtml;
+  }
+
+  var backdrop = document.createElement('div');
+  backdrop.id = 'cv-print-modal';
+  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:16px;padding:28px 24px;max-width:400px;width:100%;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;max-height:85vh;overflow-y:auto;';
+
+  box.innerHTML =
+    '<div style="text-align:center;margin-bottom:18px;">' +
+      '<div style="font-size:40px;margin-bottom:8px;">📄</div>' +
+      '<h3 style="margin:0 0 4px;color:#1a1d2e;font-size:18px;">Save as PDF</h3>' +
+      '<p style="margin:0;font-size:13px;color:#888;">Use your browser\'s built-in print menu</p>' +
+    '</div>' +
+    stepsHtml +
+    '<button id="cv-print-modal-close" style="width:100%;padding:14px;background:#3d3f8f;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">Got it</button>';
+
+  backdrop.appendChild(box);
+  document.body.appendChild(backdrop);
+
+  document.getElementById('cv-print-modal-close').addEventListener('click', function () {
+    backdrop.remove();
+  });
+
+  backdrop.addEventListener('click', function (e) {
+    if (e.target === backdrop) backdrop.remove();
+  });
+}
