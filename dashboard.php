@@ -5,6 +5,12 @@ if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
     die();
 }
+
+ $showLoginToast = false;
+if (isset($_SESSION["login_success"])) {
+    unset($_SESSION["login_success"]);
+    $showLoginToast = true;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,6 +22,30 @@ if (!isset($_SESSION["user_id"])) {
 <link rel="stylesheet" href="css/mobile-responsive.css">
 </head>
 <body>
+
+<?php if ($showLoginToast): ?>
+<div id="login-toast" class="toast-toast">
+    <div class="toast-icon">✓</div>
+    <div class="toast-body">
+        <strong>Login Successful!</strong>
+        <span>Welcome back! You are now signed in.</span>
+    </div>
+    <button class="toast-close" onclick="document.getElementById('login-toast').remove()">×</button>
+</div>
+<script>
+(function() {
+    var toast = document.getElementById('login-toast');
+    if (toast) {
+        setTimeout(function() {
+            toast.classList.add('toast-fade-out');
+            setTimeout(function() {
+                if (toast.parentNode) toast.remove();
+            }, 400);
+        }, 4000);
+    }
+})();
+</script>
+<?php endif; ?>
 
 <div class="dashboard">
 

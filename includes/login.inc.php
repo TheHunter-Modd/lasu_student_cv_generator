@@ -37,6 +37,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $_SESSION["user_id"] = $result["id"];
         $_SESSION["user_matric"] = htmlspecialchars($result["matric_number"]);
 
+        // ✅ Set login success flag for dashboard toast
+        $_SESSION["login_success"] = true;
+
         header("Location: ../dashboard.php");
         die();
 

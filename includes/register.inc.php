@@ -56,11 +56,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // CREATE USER
         create_user($pdo, $firstName, $lastName, $matricNumber, $email, $pwd);
 
-        // CLEANUP (Removed $stmt = null because it doesn't exist here)
+        // ✅ Set signup success flag so login page shows the green message
+        $_SESSION["signup_success"] = true;
+
+        // CLEANUP
         $pdo = null;
 
         // REDIRECT TO LOGIN
-        header("Location: ../login.php?signup=success");
+        header("Location: ../login.php");
         die();
 
     } catch (PDOException $e) {
