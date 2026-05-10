@@ -94,8 +94,8 @@ require_once 'includes/settings_model.inc.php';
                     <input type="text" placeholder="Search Task, Meeting, Projects...">
                     <div class="icons">
                         <!--<span><img src="assets/calendar.svg" alt=""></span>
-                        <span><img src="assets/bell-dot.svg" alt=""></span>-->
-                        <a href="settings.php" style="text-decoration:none;display:flex;align-items:center;"><img src="assets/settings.svg" style="width:20px;height:20px;" alt="Settings"></a>
+                        <span><img src="assets/bell-dot.svg" alt=""></span>
+                        <a href="settings.php" style="text-decoration:none;display:flex;align-items:center;"><img src="assets/settings.svg" style="width:20px;height:20px;" alt="Settings"></a>-->
                     </div>
                     <div class="profile-wrap" id="profileWrap">
                         <div class="profile" onclick="toggleProfile()" style="cursor:pointer;">

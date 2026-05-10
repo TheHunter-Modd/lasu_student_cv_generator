@@ -92,8 +92,8 @@ if (!isset($_SESSION["user_id"])) {
                     <input type="text" placeholder="Search...">
                     <div class="icons">
                         <!--<span><img src="assets/calendar.svg"></span>
-                        <span><img src="assets/bell-dot.svg"></span>-->
-                        <a href="settings.php" style="text-decoration:none;display:flex;align-items:center;"><img src="assets/settings.svg" style="width:20px;height:20px;" alt="Settings"></a>
+                        <span><img src="assets/bell-dot.svg"></span>
+                        <a href="settings.php" style="text-decoration:none;display:flex;align-items:center;"><img src="assets/settings.svg" style="width:20px;height:20px;" alt="Settings"></a>-->
                     </div>
                     <div class="profile-wrap" id="profileWrap">
                         <div class="profile" onclick="toggleProfile()" style="cursor:pointer;">
