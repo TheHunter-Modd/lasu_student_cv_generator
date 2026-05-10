@@ -11,6 +11,10 @@ if (isset($_SESSION["login_success"])) {
     unset($_SESSION["login_success"]);
     $showLoginToast = true;
 }
+
+require_once 'includes/dbh.inc.php';
+require_once 'includes/settings_model.inc.php';
+ $_dashboard_user = get_user_by_id($pdo, $_SESSION["user_id"]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -91,7 +95,7 @@ if (isset($_SESSION["login_success"])) {
         <div class="header-area">
             <div class="top-nav">
 
-                <!-- HAMBURGER: visible on mobile only via CSS -->
+                <!-- HAMBURGER -->
                 <button class="mobile-menu-btn" id="hamburgerBtn"
                         onclick="toggleSidebar()"
                         aria-label="Open navigation menu"
@@ -115,11 +119,15 @@ if (isset($_SESSION["login_success"])) {
                     <div class="icons">
                        <!--<span><img src="assets/calendar.svg"></span>
                         <span><img src="assets/bell-dot.svg"></span>-->
-                        <span><img src="assets/settings.svg"></span>
+                        <a href="settings.php" style="text-decoration:none;display:flex;align-items:center;"><img src="assets/settings.svg" style="width:20px;height:20px;" alt="Settings"></a>
                     </div>
                     <div class="profile-wrap" id="profileWrap">
                         <div class="profile" onclick="toggleProfile()" style="cursor:pointer;">
-                            <div class="avatar"><?php echo strtoupper(substr($_SESSION["user_matric"], 0, 1)); ?></div>
+                            <?php if (!empty($_dashboard_user["avatar"])): ?>
+                                <img src="<?php echo htmlspecialchars($_dashboard_user["avatar"]); ?>" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" alt="Avatar">
+                            <?php else: ?>
+                                <div class="avatar"><?php echo strtoupper(substr($_SESSION["user_matric"], 0, 1)); ?></div>
+                            <?php endif; ?>
                             <div class="info">
                                 <strong><?php echo $_SESSION["user_matric"]; ?></strong>
                                 <small>LASU Student</small>
@@ -128,7 +136,11 @@ if (isset($_SESSION["login_success"])) {
                         </div>
                         <div class="profile-dropdown" id="profileDropdown">
                             <div class="pd-header">
-                                <div class="pd-avatar"><?php echo strtoupper(substr($_SESSION["user_matric"], 0, 1)); ?></div>
+                                <?php if (!empty($_dashboard_user["avatar"])): ?>
+                                    <img src="<?php echo htmlspecialchars($_dashboard_user["avatar"]); ?>" style="width:42px;height:42px;border-radius:50%;object-fit:cover;box-shadow:0 2px 8px rgba(99,102,241,0.25);" alt="Avatar">
+                                <?php else: ?>
+                                    <div class="pd-avatar"><?php echo strtoupper(substr($_SESSION["user_matric"], 0, 1)); ?></div>
+                                <?php endif; ?>
                                 <div class="pd-info">
                                     <strong><?php echo htmlspecialchars($_SESSION["user_matric"]); ?></strong>
                                     <small>LASU Student</small>
@@ -149,6 +161,11 @@ if (isset($_SESSION["login_success"])) {
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                     <span>Preview CV</span>
                                     <kbd>P</kbd>
+                                </a>
+                                <a href="settings.php" class="pd-item">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                                    <span>Settings</span>
+                                    <kbd>S</kbd>
                                 </a>
                             </div>
                             <div class="pd-divider"></div>

@@ -1,16 +1,4 @@
-/* ============================================================
-   LASU CV GENERATOR — MOBILE RESPONSIVE FIX
-   css/mobile-responsive.css
 
-   This file handles MOBILE SCREEN styles only.
-   Print styles are centralized in preview.css to avoid
-   conflicts between multiple @media print blocks.
-   ============================================================ */
-
-
-/* ─────────────────────────────────────────────────────────
-   SECTION 1 — GLOBAL RESETS
-   ──────────────────────────────────────────────────────── */
 
 *,
 *::before,
