@@ -4,14 +4,14 @@ require_once __DIR__ . '/config_env.php';
 // Load .env file from project root
 loadEnv(__DIR__ . '/../.env');
 
- $host   = $_ENV['DB_HOST'] ?? '127.0.0.1';
- $port   = $_ENV['DB_PORT'] ?? '5432';       // Changed: 3307 (MySQL) -> 5432 (Postgres)
- $dbname = $_ENV['DB_NAME'] ?? '';
- $dbuser = $_ENV['DB_USER'] ?? 'postgres';    // Changed: root (MySQL) -> postgres (Postgres)
- $dbpass = $_ENV['DB_PASS'] ?? '';
+ $host    = $_ENV['DB_HOST'] ?? '127.0.0.1';
+ $port    = $_ENV['DB_PORT'] ?? '3307'; // Default XAMPP MySQL port
+ $dbname  = $_ENV['DB_NAME'] ?? 'lasu_cv_db';
+ $dbuser  = $_ENV['DB_USER'] ?? 'root';
+ $dbpass  = $_ENV['DB_PASS'] ?? ''; // XAMPP default password is empty
 
-// Postgres requires charset to be passed inside the 'options' parameter
- $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;options='--client_encoding=UTF8'";
+// MySQL DSN (Changed back to mysql:)
+ $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
 
  $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

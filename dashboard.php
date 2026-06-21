@@ -59,7 +59,7 @@ require_once 'includes/settings_model.inc.php';
     <!-- SIDEBAR -->
     <div class="sidebar" id="appSidebar">
         <h2 class="logo">
-            <img src="assets/file-text.svg">
+            <img src="assets\lasu logo.png">
             <span>lasucv.</span>
         </h2>
 
