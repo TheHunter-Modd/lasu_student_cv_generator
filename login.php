@@ -21,7 +21,7 @@ require_once 'includes/login_view.inc.php';
     <!-- HEADER -->
     <div class="header">
         <div class="logo">
-            <img src="assets/file-text.svg" alt="logo">
+            <img src="assets\lasu logo.png" alt="logo">
             <div class="text">
                 <h3>LASU CV Generator</h3>
                 <small>ATS-Compliant Resume Builder</small>
